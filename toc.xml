@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Addon Author="Caleb" APIVersion="9" Name="Potted" Description="An addon to remind you if you are missing consumables during raid combat. /potted" Version="9.0.0.1">
+	<Script Name="Libs/GeminiAddon/GeminiAddon.lua"/>
+	<Script Name="Libs/GeminiColor/GeminiColor.lua"/>
+	<Script Name="Libs/GeminiDB/GeminiDB-1.0.lua"/>
+	<Script Name="Libs/GeminiGUI/GeminiGUI.lua"/>
+	<Script Name="Libs/GeminiLocale/GeminiLocale.lua"/>
+	<Script Name="Libs/GeminiTimer/GeminiTimer-1.0.lua"/>
+	<Script Name="Libs/GeminiConfig/GeminiConfig-1.0.lua"/>
+	<Script Name="Potted.lua"/>
+	<Form Name="Potted.xml"/>
+</Addon>
