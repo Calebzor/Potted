@@ -73,6 +73,7 @@ local defaults = {
 }
 
 local uPlayer
+-- XXX this will have to be updated for future raids, so obviously not future proof, wish Group.InInstance would return true for raid instances
 local tRaidContinentIds = {
 	[52] = true, -- DS
 	[67] = true, -- GA
@@ -107,8 +108,8 @@ function addon:OnInitialize()
 		[35147] = true, -- Life Drain
 	}
 	self.tFoodIds = {
-		--[32821] = true, -- bolster
-		[48443] = true, -- Exile Empanadas -- Stuffed!
+		-- actually just use "Stuffed!" cuz I can't be bothered to add all food spellIds,
+		GameLib.GetSpell(48443):GetName(), -- "Stuffed!" from Exile Empanadas, we track food by this not by spellId
 	}
 	self.tTrackTypes = {
 		"tBoostIds",
@@ -323,9 +324,6 @@ function addon:OnEnable()
 	self:ReCreateContainers()
 
 
-	-- only start timer when in group
-	self.updateTimer = self:ScheduleRepeatingTimer("OnUpdate", 0.1)
-
 	-- Apollo.GetPackage("Gemini:ConfigDialog-1.0").tPackage:Open("Potted")
 end
 
@@ -390,7 +388,7 @@ function addon:ReCreateContainers()
 
 	self:RepositionContainers()
 
-	if not self.updateTimer then self.updateTimer = self:ScheduleRepeatingTimer("OnUpdate", 0.1) end -- start the updated
+	if not self.updateTimer and self.bInRaidContinent then self.updateTimer = self:ScheduleRepeatingTimer("OnUpdate", 0.1) end -- start the updater but only if inside a raid
 end
 
 function addon:OpenMenu()
@@ -495,7 +493,20 @@ end
 function addon:OnSubZoneChanged()
 	local zoneMap = GameLib.GetCurrentZoneMap()
 	if zoneMap and zoneMap.continentId then
-		self.bInRaidContinent = tRaidContinentIds[zoneMap.continentId]
+		if tRaidContinentIds[zoneMap.continentId] then
+			self.bInRaidContinent = true
+
+			-- only start timer when in group and inside a raid
+			if not self.updateTimer then
+				self.updateTimer = self:ScheduleRepeatingTimer("OnUpdate", 0.1)
+			end
+		else
+			self.bInRaidContinent = false
+			if self.updateTimer then
+				self:CancelTimer(self.updateTimer)
+				self.updateTimer = nil
+			end
+		end
 	end
 end
 
@@ -509,32 +520,33 @@ function addon:OnUpdate()
 	for i=1, self.db.profile.nContainerCount do
 		self.tContainers[i]:Show(false) -- hide all containers
 	end
-	
-	local tTracker = {}
-	for k, v in ipairs(tBuffs) do
-		for _, sTrackType in ipairs(self.tTrackTypes) do
-			local nContainerIdForTrackType = self:GetContainerIdForTrackType(sTrackType)
-			if self[sTrackType] and self[sTrackType][v.splEffect:GetId()] and nContainerIdForTrackType then
-				if v.fTimeRemaining < self.db.profile.nTresholdToShow then -- buff is expireing
-					local wContainer = self.tContainers[nContainerIdForTrackType]
-					if wContainer then
-					local wProgress = wContainer:FindChild("Progress")
-						wProgress:SetMax(self.db.profile.nTresholdToShow)
-						wProgress:SetProgress(self.db.profile.nTresholdToShow-v.fTimeRemaining)
-						wContainer:FindChild("Icon"):SetSprite(v.splEffect:GetIcon())
-						wContainer:FindChild("Timer"):SetText(formatTime(v.fTimeRemaining).."s")
-						wContainer:FindChild("Stack"):SetText(v.nCount > 1 and v.nCount or "") -- only show number for more than 1 stacks
-						wContainer:Show(true)
+
+	local bGrouped = uPlayer:IsInYourGroup()
+	if bGrouped and self.bInRaidContinent then -- is the player in a group and inside a raid instance
+
+		local tTracker = {}
+		for k, v in ipairs(tBuffs) do
+			for _, sTrackType in ipairs(self.tTrackTypes) do
+				local nContainerIdForTrackType = self:GetContainerIdForTrackType(sTrackType)
+				if self[sTrackType] and (self[sTrackType][v.splEffect:GetId()] or ((sTrackType == "tFoodIds") and self[sTrackType][1] == v.splEffect:GetName())) and nContainerIdForTrackType then
+					if v.fTimeRemaining < self.db.profile.nTresholdToShow then -- buff is expireing
+						local wContainer = self.tContainers[nContainerIdForTrackType]
+						if wContainer then
+						local wProgress = wContainer:FindChild("Progress")
+							wProgress:SetMax(self.db.profile.nTresholdToShow)
+							wProgress:SetProgress(self.db.profile.nTresholdToShow-v.fTimeRemaining)
+							wContainer:FindChild("Icon"):SetSprite(v.splEffect:GetIcon())
+							wContainer:FindChild("Timer"):SetText(formatTime(v.fTimeRemaining).."s")
+							wContainer:FindChild("Stack"):SetText(v.nCount > 1 and v.nCount or "") -- only show number for more than 1 stacks
+							wContainer:Show(true)
+						end
+					else -- buff has more time left on it then the treshold aka it should not be shown, but should be tracked
+						tTracker[sTrackType] = true
 					end
-				else -- buff has more time left on it then the treshold aka it should not be shown, but should be tracked
-					tTracker[sTrackType] = true
 				end
 			end
 		end
-	end
 
-	local bGrouped = uPlayer:IsInYourGroup()
-	if bGrouped then -- is the player in a group
 		local bPartyInCombat = self:PartyCombatCheck()
 		for _, sTrackType in ipairs(self.tTrackTypes) do
 			local nContainerIdForTrackType = self:GetContainerIdForTrackType(sTrackType)
@@ -550,26 +562,26 @@ function addon:OnUpdate()
 				end
 			end
 		end
-	end
+	
 
-	if not uPlayer:IsInCombat() then
-		for i=1, self.db.profile.nContainerCount do
-			self.tContainers[i]:Show(false) -- hide all containers
-		end
-		-- or well maybe not all, aka show food!
-		-- an in raid check would not hurt here
-		if bGrouped and self.bInRaidContinent then
-			local nContainerIdForTrackType = self:GetContainerIdForTrackType("tFoodIds")
-			if nContainerIdForTrackType and not tTracker["tFoodIds"] then
-				local wContainer = self.tContainers[nContainerIdForTrackType]
-				if wContainer then
-					wContainer:Show(true)
-					local wProgress = wContainer:FindChild("Progress")
-					wProgress:SetMax(self.db.profile.nTresholdToShow)
-					wProgress:SetProgress(self.db.profile.nTresholdToShow)
-					wContainer:FindChild("Timer"):SetText("")
-					wContainer:FindChild("Stack"):SetText("")
-				end
+		local nContainerIdForTrackType = self:GetContainerIdForTrackType("tFoodIds")
+		local wContainer = self.tContainers[nContainerIdForTrackType]
+		if uPlayer:IsInCombat() then
+			if wContainer and wContainer:IsShown() then
+				wContainer:Show(false) -- don't show the food type tracker in combat
+			end
+		else
+			for i=1, self.db.profile.nContainerCount do
+				self.tContainers[i]:Show(false) -- hide all containers
+			end
+			-- or well maybe not all, aka show food!
+			if nContainerIdForTrackType and not tTracker["tFoodIds"] and wContainer then
+				wContainer:Show(true)
+				local wProgress = wContainer:FindChild("Progress")
+				wProgress:SetMax(self.db.profile.nTresholdToShow)
+				wProgress:SetProgress(self.db.profile.nTresholdToShow)
+				wContainer:FindChild("Timer"):SetText("")
+				wContainer:FindChild("Stack"):SetText("")
 			end
 		end
 	end
