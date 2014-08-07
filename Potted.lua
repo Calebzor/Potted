@@ -9,6 +9,9 @@
 		only start timer in group and disable it outside of group
 ]]--
 
+
+local sVersion = "9.0.0.2"
+
 require "GameLib"
 require "GroupLib"
 require "CColor"
@@ -503,5 +506,4 @@ function addon:OnUpdate()
 		end
 	end
 end
-
 
