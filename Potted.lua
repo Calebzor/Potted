@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------------------------
+-- Potted
+-- An addon to remind you if you are missing consumables during raid combat by Caleb - calebzor@gmail.com
+-- /potted
+-----------------------------------------------------------------------------------------------
+
 --[[
 	TODO:
 		move everything to GeminiGUI
@@ -10,12 +16,15 @@
 ]]--
 
 
-local sVersion = "9.0.0.2"
+local sVersion = "9.0.0.3"
 
 require "GameLib"
 require "GroupLib"
 require "CColor"
 
+-----------------------------------------------------------------------------------------------
+-- Upvalues
+-----------------------------------------------------------------------------------------------
 local CColor = CColor
 local GameLib = GameLib
 local GroupLib = GroupLib
@@ -29,7 +38,9 @@ local Print = Print
 local type = type
 local math = math
 
-
+-----------------------------------------------------------------------------------------------
+-- Package loading
+-----------------------------------------------------------------------------------------------
 local addon = Apollo.GetPackage("Gemini:Addon-1.1").tPackage:NewAddon("Potted", false, {}, "Gemini:Timer-1.0" )
 local GeminiColor = Apollo.GetPackage("GeminiColor").tPackage
 local GeminiGUI = Apollo.GetPackage("Gemini:GUI-1.0").tPackage
@@ -38,6 +49,9 @@ local GeminiColor = Apollo.GetPackage("GeminiColor").tPackage
 --local GeminiCmd = Apollo.GetPackage("Gemini:ConfigCmd-1.0").tPackage
 local L = Apollo.GetPackage("Gemini:Locale-1.0").tPackage:GetLocale("Potted", true)
 
+-----------------------------------------------------------------------------------------------
+-- Locals and defaults
+-----------------------------------------------------------------------------------------------
 local defaults = {
 	profile = {
 		tPos = {232,235,352,264},
@@ -58,13 +72,17 @@ local defaults = {
 	},
 }
 
+local uPlayer
+
+-----------------------------------------------------------------------------------------------
+-- Options tables
+-----------------------------------------------------------------------------------------------
+
 local tMyFontTable = {}
 for nIndex,font in ipairs(Apollo.GetGameFonts()) do
 	-- use this format in case we decide to go back to using nIndex then won't have to change so much again
 	tMyFontTable[font.name] = font.name
 end
-
-local uPlayer
 
 local tLocalizedNameOfTrackType = {
 	tBoostIds = "Boosts",
@@ -72,6 +90,9 @@ local tLocalizedNameOfTrackType = {
 	tFoodIds = "Food",
 }
 
+-----------------------------------------------------------------------------------------------
+-- Initialization
+-----------------------------------------------------------------------------------------------
 function addon:OnInitialize()
 	self.tBoostIds = {
 		--[32821] = true, -- bolster
@@ -96,6 +117,7 @@ function addon:OnInitialize()
 	self.tContainers = {}
 	self.tContainerBuffTypeAssoc = {}
 end
+
 
 function addon:OnEnable()
 	self.myOptionsTable = {
@@ -139,7 +161,7 @@ function addon:OnEnable()
 				name = "Click me!",
 				desc = "Click this once you wrote in the buff's name in the input box",
 				type = "execute",
-				func = function() getSpellIdForBuffByName(self.db.profile.helpInput) end,
+				func = function() self:GetSpellIdForBuffByName(self.db.profile.helpInput) end,
 			},
 			optionsHeader = {
 				order = 8,
@@ -323,6 +345,10 @@ function addon:GenerateContainerOptions()
 	
 end
 
+-----------------------------------------------------------------------------------------------
+-- Constructors and other GUI
+-----------------------------------------------------------------------------------------------
+
 function addon:ReCreateContainers()
 	if self.updateTimer then self:CancelTimer(self.updateTimer) self.updateTimer = nil end -- stop the updated
 
@@ -365,6 +391,28 @@ function addon:OpenMenu()
 	Apollo.GetPackage("Gemini:ConfigDialog-1.0").tPackage:Open("Potted")
 end
 
+function addon:RepositionContainers()
+	local l,t,r,b = self.wAnchor:GetAnchorOffsets()
+	for i=1, self.db.profile.nContainerCount do
+		self.tContainers[i]:SetAnchorOffsets(l+(i-1)*self.db.profile.nContainerSize+(i-1)*self.db.profile.nPadding, b, l+i*self.db.profile.nContainerSize+(i-1)*self.db.profile.nPadding, b+self.db.profile.nContainerSize)
+	end
+end
+
+function addon:OnAnchorMove()
+	self:RepositionContainers()
+	local l,t,r,b = self.wAnchor:GetAnchorOffsets()
+	self.db.profile.tPos = {l,t,r,b}
+end
+
+function addon:OnAnchorLockButton()
+	self.wAnchor:Show(false)
+	self.db.profile.bShowAnchor = false
+end
+
+-----------------------------------------------------------------------------------------------
+-- Helpers
+-----------------------------------------------------------------------------------------------
+
 function addon:OnContainerBuffTypeChange()
 	self.tContainerBuffTypeAssoc = {}
 	for k, v in pairs(self.db.profile) do
@@ -374,7 +422,7 @@ function addon:OnContainerBuffTypeChange()
 	end
 end
 
-function getSpellIdForBuffByName(sSpellName)
+function addon:GetSpellIdForBuffByName(sSpellName)
 	if not sSpellName then Print("That was an empty string :(") return end
 	uPlayer = GameLib.GetPlayerUnit()
 	if not uPlayer then return end
@@ -420,23 +468,6 @@ function addon:GetContainerIdForTrackType(sTrackType)
 	return false
 end
 
-function addon:RepositionContainers()
-	local l,t,r,b = self.wAnchor:GetAnchorOffsets()
-	for i=1, self.db.profile.nContainerCount do
-		self.tContainers[i]:SetAnchorOffsets(l+(i-1)*self.db.profile.nContainerSize+(i-1)*self.db.profile.nPadding, b, l+i*self.db.profile.nContainerSize+(i-1)*self.db.profile.nPadding, b+self.db.profile.nContainerSize)
-	end
-end
-
-function addon:OnAnchorMove()
-	self:RepositionContainers()
-	local l,t,r,b = self.wAnchor:GetAnchorOffsets()
-	self.db.profile.tPos = {l,t,r,b}
-end
-
-function addon:OnAnchorLockButton()
-	self.wAnchor:Show(false)
-	self.db.profile.bShowAnchor = false
-end
 
 function addon:PartyCombatCheck()
 	local nRaidMembersInCombat = 0
@@ -450,6 +481,10 @@ function addon:PartyCombatCheck()
 	end
 	return self.db.profile.nPartyMembersInCombatForcombatCheck <= nRaidMembersInCombat
 end
+
+-----------------------------------------------------------------------------------------------
+-- Updater
+-----------------------------------------------------------------------------------------------
 
 function addon:OnUpdate()
 	uPlayer = GameLib.GetPlayerUnit()
@@ -506,4 +541,3 @@ function addon:OnUpdate()
 		end
 	end
 end
-
