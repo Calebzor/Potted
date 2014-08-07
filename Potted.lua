@@ -14,7 +14,7 @@
 ]]--
 
 
-local sVersion = "9.0.0.7"
+local sVersion = "9.0.0.8"
 
 require "GameLib"
 require "GroupLib"
@@ -105,10 +105,12 @@ local tLocalizedNameOfTrackType = {
 function addon:OnInitialize()
 	self.tBoostIds = {
 		--[32821] = true, -- bolster
+		[36588] = true, -- Expert Moxie Boost - Moxie Boost
 		[37091] = true, -- Reactive Moxie Boost
 	}
 	self.tFieldTechtIds = {
 		--[32821] = true, -- bolster
+		[35213] = true, -- Liquid Confidence - Siphon
 		[35147] = true, -- Life Drain
 	}
 	self.tFoodIds = {
