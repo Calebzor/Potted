@@ -11,12 +11,10 @@
 		TEST STUFF!
 		populate bufftype tables
 
-		bunch of group related code
-		only start timer in group and disable it outside of group
 ]]--
 
 
-local sVersion = "9.0.0.4"
+local sVersion = "9.0.0.5"
 
 require "GameLib"
 require "GroupLib"
@@ -77,6 +75,12 @@ local uPlayer
 local tRaidContinentIds = {
 	[52] = true, -- DS
 	[67] = true, -- GA
+}
+
+local tTrackTypeDefaultIcons = {
+	tBoostIds = "Icon_ItemMisc_UI_potion_0003",
+	tFieldTechtIds = "Icon_ItemMisc_UI_Item_Potion_001",
+	tFoodIds = "Icon_ItemMisc_UI_Item_Sammich",
 }
 
 -----------------------------------------------------------------------------------------------
@@ -371,6 +375,7 @@ function addon:ReCreateContainers()
 		
 		self.tContainers[i] = Apollo.LoadForm("Potted.xml", "ItemContainer", nil, self)
 		self.tContainers[i]:FindChild("Icon"):SetOpacity(self.db.profile.nOpacity)
+		self.tContainers[i]:FindChild("Icon"):SetSprite(tTrackTypeDefaultIcons[self.tContainerBuffTypeAssoc[i]])
 		self.tContainers[i]:FindChild("Progress"):SetBGColor(CColor.new(unpack(self.db.profile.progressColor)))
 		self.tContainers[i]:FindChild("Title"):SetText(tLocalizedNameOfTrackType[self.tContainerBuffTypeAssoc[i]])
 
