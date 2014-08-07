@@ -7,14 +7,12 @@
 --[[
 	TODO:
 		move everything to GeminiGUI
-		food buffs probably need to be tracked by name not by Id -- need to look into this
+
 		TEST STUFF!
 		populate bufftype tables
-
 ]]--
 
-
-local sVersion = "9.0.0.8"
+local sVersion = "9.0.0.9"
 
 require "GameLib"
 require "GroupLib"
@@ -107,6 +105,7 @@ function addon:OnInitialize()
 		--[32821] = true, -- bolster
 		[36588] = true, -- Expert Moxie Boost - Moxie Boost
 		[37091] = true, -- Reactive Moxie Boost
+		[35078] = true, -- Liquid Focus -- Reactive Strikethrough Boost
 	}
 	self.tFieldTechtIds = {
 		--[32821] = true, -- bolster
