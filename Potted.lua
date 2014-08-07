@@ -16,7 +16,7 @@
 ]]--
 
 
-local sVersion = "9.0.0.3"
+local sVersion = "9.0.0.4"
 
 require "GameLib"
 require "GroupLib"
@@ -73,6 +73,10 @@ local defaults = {
 }
 
 local uPlayer
+local tRaidContinentIds = {
+	[52] = true, -- DS
+	[67] = true, -- GA
+}
 
 -----------------------------------------------------------------------------------------------
 -- Options tables
@@ -116,6 +120,7 @@ function addon:OnInitialize()
 
 	self.tContainers = {}
 	self.tContainerBuffTypeAssoc = {}
+	self.bInRaidContinent = false
 end
 
 
@@ -313,7 +318,8 @@ function addon:OnEnable()
 	self.wAnchor:SetAnchorOffsets(unpack(self.db.profile.tPos))
 	self.wAnchor:Show(self.db.profile.bShowAnchor)
 
-
+	Apollo.RegisterEventHandler("SubZoneChanged", "OnSubZoneChanged", self)
+	self:OnSubZoneChanged() -- call it once for ReloadUI
 	self:ReCreateContainers()
 
 
@@ -486,6 +492,13 @@ end
 -- Updater
 -----------------------------------------------------------------------------------------------
 
+function addon:OnSubZoneChanged()
+	local zoneMap = GameLib.GetCurrentZoneMap()
+	if zoneMap and zoneMap.continentId then
+		self.bInRaidContinent = tRaidContinentIds[zoneMap.continentId]
+	end
+end
+
 function addon:OnUpdate()
 	uPlayer = GameLib.GetPlayerUnit()
 	if not uPlayer then return end
@@ -497,31 +510,37 @@ function addon:OnUpdate()
 		self.tContainers[i]:Show(false) -- hide all containers
 	end
 	
+	local tTracker = {}
 	for k, v in ipairs(tBuffs) do
 		for _, sTrackType in ipairs(self.tTrackTypes) do
 			local nContainerIdForTrackType = self:GetContainerIdForTrackType(sTrackType)
-			if self[sTrackType] and self[sTrackType][v.splEffect:GetId()] and nContainerIdForTrackType and v.fTimeRemaining < self.db.profile.nTresholdToShow then
-				local wContainer = self.tContainers[nContainerIdForTrackType]
-				if wContainer then
-				local wProgress = wContainer:FindChild("Progress")
-					wProgress:SetMax(self.db.profile.nTresholdToShow)
-					wProgress:SetProgress(self.db.profile.nTresholdToShow-v.fTimeRemaining)
-					wContainer:FindChild("Icon"):SetSprite(v.splEffect:GetIcon())
-					wContainer:FindChild("Timer"):SetText(formatTime(v.fTimeRemaining).."s")
-					wContainer:FindChild("Stack"):SetText(v.nCount > 1 and v.nCount or "") -- only show number for more than 1 stacks
-					wContainer:Show(true)
+			if self[sTrackType] and self[sTrackType][v.splEffect:GetId()] and nContainerIdForTrackType then
+				if v.fTimeRemaining < self.db.profile.nTresholdToShow then -- buff is expireing
+					local wContainer = self.tContainers[nContainerIdForTrackType]
+					if wContainer then
+					local wProgress = wContainer:FindChild("Progress")
+						wProgress:SetMax(self.db.profile.nTresholdToShow)
+						wProgress:SetProgress(self.db.profile.nTresholdToShow-v.fTimeRemaining)
+						wContainer:FindChild("Icon"):SetSprite(v.splEffect:GetIcon())
+						wContainer:FindChild("Timer"):SetText(formatTime(v.fTimeRemaining).."s")
+						wContainer:FindChild("Stack"):SetText(v.nCount > 1 and v.nCount or "") -- only show number for more than 1 stacks
+						wContainer:Show(true)
+					end
+				else -- buff has more time left on it then the treshold aka it should not be shown, but should be tracked
+					tTracker[sTrackType] = true
 				end
 			end
 		end
 	end
 
-	if uPlayer:IsInYourGroup() then -- is the player in a group
+	local bGrouped = uPlayer:IsInYourGroup()
+	if bGrouped then -- is the player in a group
 		local bPartyInCombat = self:PartyCombatCheck()
 		for _, sTrackType in ipairs(self.tTrackTypes) do
 			local nContainerIdForTrackType = self:GetContainerIdForTrackType(sTrackType)
 			if nContainerIdForTrackType then
 				local wContainer = self.tContainers[nContainerIdForTrackType]
-				if wContainer and not wContainer:IsShown() then
+				if wContainer and not wContainer:IsShown() and not tTracker[sTrackType] then -- aka there is no currently expiring buff and is not tracked already ( long duration left )
 					wContainer:Show(true)
 					local wProgress = wContainer:FindChild("Progress")
 					wProgress:SetMax(self.db.profile.nTresholdToShow)
@@ -533,11 +552,25 @@ function addon:OnUpdate()
 		end
 	end
 
-
 	if not uPlayer:IsInCombat() then
-		-- or well maybe not all, aka show food!
 		for i=1, self.db.profile.nContainerCount do
 			self.tContainers[i]:Show(false) -- hide all containers
+		end
+		-- or well maybe not all, aka show food!
+		-- an in raid check would not hurt here
+		if bGrouped and self.bInRaidContinent then
+			local nContainerIdForTrackType = self:GetContainerIdForTrackType("tFoodIds")
+			if nContainerIdForTrackType and not tTracker["tFoodIds"] then
+				local wContainer = self.tContainers[nContainerIdForTrackType]
+				if wContainer then
+					wContainer:Show(true)
+					local wProgress = wContainer:FindChild("Progress")
+					wProgress:SetMax(self.db.profile.nTresholdToShow)
+					wProgress:SetProgress(self.db.profile.nTresholdToShow)
+					wContainer:FindChild("Timer"):SetText("")
+					wContainer:FindChild("Stack"):SetText("")
+				end
+			end
 		end
 	end
 end
