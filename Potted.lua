@@ -14,7 +14,7 @@
 ]]--
 
 
-local sVersion = "9.0.0.6"
+local sVersion = "9.0.0.7"
 
 require "GameLib"
 require "GroupLib"
@@ -165,10 +165,17 @@ function addon:OnInitialize()
 			},
 			helpExecute = {
 				order = 5,
-				name = "Click me!",
+				name = "Click me! (Get data from Player)",
 				desc = "Click this once you wrote in the buff's name in the input box",
 				type = "execute",
 				func = function() self:GetSpellIdForBuffByName(self.db.profile.helpInput) end,
+			},
+			helpExecute2 = {
+				order = 5,
+				name = "Click me! (Get data from Target)",
+				desc = "Click this once you wrote in the buff's name in the input box",
+				type = "execute",
+				func = function() self:GetSpellIdForBuffByName(self.db.profile.helpInput, true) end,
 			},
 			optionsHeader = {
 				order = 8,
@@ -427,9 +434,9 @@ function addon:OnContainerBuffTypeChange()
 	end
 end
 
-function addon:GetSpellIdForBuffByName(sSpellName)
+function addon:GetSpellIdForBuffByName(sSpellName, bTarget)
 	if not sSpellName then Print("That was an empty string :(") return end
-	uPlayer = GameLib.GetPlayerUnit()
+	uPlayer = bTarget and GameLib.GetTargetUnit() or GameLib.GetPlayerUnit()
 	if not uPlayer then return end
 	local tBuffs = uPlayer:GetBuffs().arBeneficial
 	if not tBuffs then return end
