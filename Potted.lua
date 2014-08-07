@@ -14,7 +14,7 @@
 ]]--
 
 
-local sVersion = "9.0.0.5"
+local sVersion = "9.0.0.6"
 
 require "GameLib"
 require "GroupLib"
@@ -126,10 +126,7 @@ function addon:OnInitialize()
 	self.tContainers = {}
 	self.tContainerBuffTypeAssoc = {}
 	self.bInRaidContinent = false
-end
 
-
-function addon:OnEnable()
 	self.myOptionsTable = {
 		type = "group",
 		get = function(info) return self.db.profile[info[#info]] end,
@@ -311,22 +308,22 @@ function addon:OnEnable()
 
 	-- well this was planned to be dynamic but now it is not, maybe at some point
 	self:GenerateContainerOptions()
-	GeminiConfig:RegisterOptionsTable("Potted", self.myOptionsTable)
+end
 
+
+function addon:OnEnable()
+	GeminiConfig:RegisterOptionsTable("Potted", self.myOptionsTable)
 
 	Apollo.RegisterSlashCommand("potted", "OpenMenu", self)
 	Apollo.RegisterSlashCommand("Potted", "OpenMenu", self)
 
-
 	self.wAnchor = Apollo.LoadForm("Potted.xml", "Anchor", nil, self)
-	self.wAnchor:Show(true)
 	self.wAnchor:SetAnchorOffsets(unpack(self.db.profile.tPos))
 	self.wAnchor:Show(self.db.profile.bShowAnchor)
 
 	Apollo.RegisterEventHandler("SubZoneChanged", "OnSubZoneChanged", self)
 	self:OnSubZoneChanged() -- call it once for ReloadUI
 	self:ReCreateContainers()
-
 
 	-- Apollo.GetPackage("Gemini:ConfigDialog-1.0").tPackage:Open("Potted")
 end
@@ -350,7 +347,6 @@ function addon:GenerateContainerOptions()
 		}
 		nOrder = nOrder +1
 	end
-	
 end
 
 -----------------------------------------------------------------------------------------------
@@ -477,7 +473,6 @@ function addon:GetContainerIdForTrackType(sTrackType)
 	return false
 end
 
-
 function addon:PartyCombatCheck()
 	local nRaidMembersInCombat = 0
 	for i=1, GroupLib.GetMemberCount() do
@@ -500,7 +495,6 @@ function addon:OnSubZoneChanged()
 	if zoneMap and zoneMap.continentId then
 		if tRaidContinentIds[zoneMap.continentId] then
 			self.bInRaidContinent = true
-
 			-- only start timer when in group and inside a raid
 			if not self.updateTimer then
 				self.updateTimer = self:ScheduleRepeatingTimer("OnUpdate", 0.1)
