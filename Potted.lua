@@ -12,7 +12,7 @@
 		populate bufftype tables
 ]]--
 
-local sVersion = "9.0.0.9"
+local sVersion = "9.0.0.10"
 
 require "GameLib"
 require "GroupLib"
@@ -103,9 +103,19 @@ local tLocalizedNameOfTrackType = {
 function addon:OnInitialize()
 	self.tBoostIds = {
 		--[32821] = true, -- bolster
-		[36588] = true, -- Expert Moxie Boost - Moxie Boost
-		[37091] = true, -- Reactive Moxie Boost
 		[35078] = true, -- Liquid Focus -- Reactive Strikethrough Boost
+		[36588] = true, -- Expert Moxie Boost - Moxie Boost
+		[36573] = true, -- Expert Finess Boost - Finess Boost
+		[26594] = true, -- Expert Insight Boost - Insight Boost
+		[35028] = true, -- Expert Brutality Boost - Brutality Boost
+		[38157] = true, -- Expert Grid Boost - Grit boost
+		[36579] = true, -- Expert Tech Boost - Tech boost
+		[35062] = true, -- Reactive Brutality Boost
+		[37054] = true, -- Reactive Finess Boost
+		[37074] = true, -- Reactive Insight Boost
+		[37103] = true, -- Reactive Tech Boost
+		[37091] = true, -- Reactive Moxie Boost
+		[39733] = true, -- zerkOut Neurochems - Unstable Critical Hit Boost
 	}
 	self.tFieldTechtIds = {
 		--[32821] = true, -- bolster
