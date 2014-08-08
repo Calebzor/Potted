@@ -12,7 +12,7 @@
 		populate bufftype tables
 ]]--
 
-local sVersion = "9.0.0.10"
+local sVersion = "9.0.0.11"
 
 require "GameLib"
 require "GroupLib"
@@ -55,9 +55,9 @@ local defaults = {
 		nContainerCount = 3,
 		nContainerSize = 80,
 		nPadding = 0,
-		nTresholdToShow = 4,
-		nPartyMembersInCombatForcombatCheck = 1,
-		nOpacity = 1,
+		nTresholdToShow = 15,
+		nPartyMembersInCombatForcombatCheck = 6,
+		nOpacity = 0.7,
 		progressColor = {1,0,0,0.7},
 		titleFont = "CRB_Interface9_BO",
 		timerFont = "CRB_Interface9_BO",
@@ -116,6 +116,7 @@ function addon:OnInitialize()
 		[37103] = true, -- Reactive Tech Boost
 		[37091] = true, -- Reactive Moxie Boost
 		[39733] = true, -- zerkOut Neurochems - Unstable Critical Hit Boost
+		[39735] = true, -- Temporal Shimmy Tonic - Unstable Critical Hit Boost
 	}
 	self.tFieldTechtIds = {
 		--[32821] = true, -- bolster
