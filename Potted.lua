@@ -10,9 +10,10 @@
 
 		TEST STUFF!
 		populate bufftype tables
+		localization
 ]]--
 
-local sVersion = "9.0.0.11"
+local sVersion = "9.0.0.12"
 
 require "GameLib"
 require "GroupLib"
@@ -162,8 +163,8 @@ function addon:OnInitialize()
  
     1) Make sure you have the buff on you.
     2) Mouse over the buff on your buff bar and write the buffs name into the input box just below this text (or at least part of the buff's name).
-    3) Once you wrote in the buff's name press the button ("Click me!") next to the input box ( you must still have the buff on you ).
-    4) You'll get a debug print in your chat. Write this down and post it on curse as a comment for the addon. ( or e-mail me at: calebzor@gmail.com )
+    3) Once you wrote in the buff's name (and hit enter) press the button ("Click me!") next to the input box ( you must still have the buff on you ).
+    4) You'll get a debug print in your chat. Write this down and post it on curse as a comment for the addon. ( or e-mail me at: calebzor@gmail.com or tweet at me: @CalebEnsidia )
  
 				]],
 				type = "description",
