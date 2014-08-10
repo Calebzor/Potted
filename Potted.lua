@@ -13,7 +13,7 @@
 		localization
 ]]--
 
-local sVersion = "9.0.0.12"
+local sVersion = "9.0.0.13"
 
 require "GameLib"
 require "GroupLib"

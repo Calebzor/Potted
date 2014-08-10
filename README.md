@@ -3,6 +3,10 @@ Potted
 
 An addon to remind you if you are missing consumables during raid combat. /potted
 
+Basically tracks if you have Boosts / Field Tech / Food type buffs on you or not and it only shows up when you either don't have the buff types on you or when they are about to expire, so the addon does not take up space unnecessarily.
+
+Right now it only works in raids ( GA / DS ).
+
 ##Features
 * Moveable
 * Icon size can be changed
