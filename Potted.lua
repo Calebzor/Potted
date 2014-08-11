@@ -13,7 +13,7 @@
 		localization
 ]]--
 
-local sVersion = "9.0.0.15"
+local sVersion = "9.0.0.16"
 
 require "GameLib"
 require "GroupLib"
@@ -77,7 +77,7 @@ local tRaidContinentIds = {
 }
 
 local tTrackTypeDefaultIcons = {
-	tBoostIds = "Icon_ItemMisc_UI_potion_0003",
+	tBoostIds = "Icon_ItemMisc_potion_0003",
 	tFieldTechtIds = "Icon_ItemMisc_UI_Item_Potion_001",
 	tFoodIds = "Icon_ItemMisc_UI_Item_Sammich",
 }
