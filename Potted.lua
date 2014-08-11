@@ -13,7 +13,7 @@
 		localization
 ]]--
 
-local sVersion = "9.0.0.14"
+local sVersion = "9.0.0.15"
 
 require "GameLib"
 require "GroupLib"
@@ -555,7 +555,7 @@ function addon:OnUpdate()
 							wProgress:SetMax(self.db.profile.nTresholdToShow)
 							wProgress:SetProgress(self.db.profile.nTresholdToShow-v.fTimeRemaining)
 							wContainer:FindChild("Icon"):SetSprite(v.splEffect:GetIcon())
-							wContainer:FindChild("Timer"):SetText(formatTime(v.fTimeRemaining).."s")
+							wContainer:FindChild("Timer"):SetText(formatTime(v.fTimeRemaining))
 							wContainer:FindChild("Stack"):SetText(v.nCount > 1 and v.nCount or "") -- only show number for more than 1 stacks
 							wContainer:Show(true)
 						end
