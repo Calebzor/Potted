@@ -13,7 +13,7 @@
 		localization
 ]]--
 
-local sVersion = "9.0.1.2"
+local sVersion = "9.0.1.3"
 
 require "GameLib"
 require "GroupLib"
@@ -123,6 +123,7 @@ function addon:OnInitialize()
 		--[32821] = true, -- bolster
 		[35213] = true, -- Liquid Confidence - Siphon
 		[35147] = true, -- Life Drain
+		[35164] = true, -- Bioreactive Acid Membrane - Cleave
 	}
 	self.tFoodIds = {
 		-- actually just use "Stuffed!" cuz I can't be bothered to add all food spellIds,
@@ -345,6 +346,11 @@ function addon:OnEnable()
 	self:OnSubZoneChanged() -- call it once for ReloadUI
 	self:ReCreateContainers()
 
+	Apollo.RegisterEventHandler("OnGroup_Remove", "GroupLeft", self)
+	Apollo.RegisterEventHandler("OnGroup_Left", "GroupLeft", self)
+	Apollo.RegisterEventHandler("Group_Remove", "GroupLeft", self)
+	Apollo.RegisterEventHandler("Group_Left", "GroupLeft", self)
+
 	-- Apollo.GetPackage("Gemini:ConfigDialog-1.0").tPackage:Open("Potted")
 end
 
@@ -510,6 +516,10 @@ end
 -- Updater
 -----------------------------------------------------------------------------------------------
 
+function addon:GroupLeft()
+	self:OnSubZoneChanged()
+end
+
 function addon:OnSubZoneChanged()
 	local zoneMap = GameLib.GetCurrentZoneMap()
 	if zoneMap and zoneMap.continentId then
@@ -525,6 +535,7 @@ function addon:OnSubZoneChanged()
 				self:CancelTimer(self.updateTimer)
 				self.updateTimer = nil
 			end
+			self:OnUpdate() -- one last call to hide all
 		end
 	end
 end
@@ -537,7 +548,9 @@ function addon:OnUpdate()
 	if not tBuffs then return end
 
 	for i=1, self.db.profile.nContainerCount do
-		self.tContainers[i]:Show(false) -- hide all containers
+		if self.tContainers[i] then
+			self.tContainers[i]:Show(false) -- hide all containers
+		end
 	end
 
 	local bGrouped = uPlayer:IsInYourGroup()
