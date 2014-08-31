@@ -13,7 +13,7 @@
 		localization
 ]]--
 
-local sVersion = "9.0.1.3"
+local sVersion = "9.0.1.4"
 
 require "GameLib"
 require "GroupLib"
@@ -118,6 +118,7 @@ function addon:OnInitialize()
 		[37091] = true, -- Reactive Moxie Boost
 		[39733] = true, -- zerkOut Neurochems - Unstable Critical Hit Boost
 		[39735] = true, -- Temporal Shimmy Tonic - Unstable Critical Hit Boost
+		[39725] = true, -- Quickstrike Serum - Reactive Critical Hit boost
 	}
 	self.tFieldTechtIds = {
 		--[32821] = true, -- bolster
