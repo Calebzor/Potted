@@ -13,7 +13,7 @@
 		localization
 ]]--
 
-local sVersion = "9.0.1.7"
+local sVersion = "9.0.1.8"
 
 require "GameLib"
 require "GroupLib"
@@ -53,7 +53,7 @@ local defaults = {
 	profile = {
 		tPos = {232,235,352,264},
 		bShowAnchor = true,
-		nContainerCount = 3,
+		nContainerCount = 4,
 		nContainerSize = 80,
 		nPadding = 0,
 		nTresholdToShow = 15,
@@ -66,6 +66,7 @@ local defaults = {
 		c1 = "tBoostIds",
 		c2 = "tFieldTechtIds",
 		c3 = "tFoodIds",
+		c4 = "tProtection",
 	},
 }
 
@@ -80,6 +81,7 @@ local tTrackTypeDefaultIcons = {
 	tBoostIds = "Icon_ItemMisc_potion_0003",
 	tFieldTechtIds = "Icon_ItemMisc_UI_Item_Potion_001",
 	tFoodIds = "Icon_ItemMisc_UI_Item_Sammich",
+	tProtection = "Icon_ItemMisc_UI_Item_Potion_002",
 }
 
 -----------------------------------------------------------------------------------------------
@@ -96,6 +98,7 @@ local tLocalizedNameOfTrackType = {
 	tBoostIds = "Boosts",
 	tFieldTechtIds = "Field Tech",
 	tFoodIds = "Food",
+	tProtection = "Protection",
 }
 
 -----------------------------------------------------------------------------------------------
@@ -122,8 +125,7 @@ function addon:OnInitialize()
 
 		[39742] = true, -- Avoidance Formatic Foam - Deflect Boost -- even though this is marked as field tech, it does not stack with boosts
 		[39748] = true, -- QuickReact Formatic Foam - Deflect Critical Hit Boost
-		[35100] = true, -- Epochos Armor Boost - Armor Boost
-		[35106] = true, -- Epochos Resist Boost - Resist Boost
+
 		[35122] = true, -- Adventus Enduro Boost - Endurance Boost -- this stacks with other boosts - so maybe don't track it?
 		[39715] = true, -- Adventus Critical Hit Boost - Critical Hit Boost
 		[35093] = true, -- Adventus Strikethrough Boost - Unstable Strikethrough Boost
@@ -135,6 +137,11 @@ function addon:OnInitialize()
 		[35080] = true, -- Aggo-Momentum Focuser - Reactive Strikethrough Boost -- even though this is marked as field tech, it does not stack with boosts
 		[35052] = true, -- Aggression Neurotrancer - Strikethrough Boost -- yep another boost
 		[39736] = true, -- zerkOut Neurotrancer - Unstable Critical Hit Boost -- yep another boost
+	}
+	self.tProtection = {
+		--[32821] = true, -- bolster
+		[35100] = true, -- Epochos Armor Boost - Armor Boost
+		[35106] = true, -- Epochos Resist Boost - Resist Boost
 	}
 	self.tFieldTechtIds = {
 		--[32821] = true, -- bolster
@@ -155,6 +162,7 @@ function addon:OnInitialize()
 		"tBoostIds",
 		"tFieldTechtIds",
 		"tFoodIds",
+		"tProtection",
 	}
 
 	self.db = Apollo.GetPackage("Gemini:DB-1.0").tPackage:New(self, defaults, true)
@@ -228,7 +236,7 @@ function addon:OnInitialize()
 				name = "Container count",
 				type = "range",
 				min = 1,
-				max = 3,
+				max = 4,
 				step = 1,
 				width = "full",
 				set = function(info, v) self.db.profile[info[#info]] = v; GeminiConfig:RegisterOptionsTable("Potted", self.myOptionsTable) self:ReCreateContainers() end,
